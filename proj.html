@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FastRide - Bus Booking</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: darkblue;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 80%;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .box {
+            background-color: white;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px gray;
+        }
+
+        h2 {
+            color: darkblue;
+        }
+
+        input, select {
+            width: 90%;
+            padding: 10px;
+            margin-top: 8px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background-color: darkblue;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: navy;
+        }
+
+        .bus-card {
+            border: 1px solid gray;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        #bookingSection,
+        #paymentSection,
+        #confirmationSection {
+            display: none;
+        }
+
+        #qrImage {
+            width: 200px;
+            height: 200px;
+        }
+
+        #ticket {
+            border: 2px dashed black;
+            padding: 20px;
+            background-color: #fff8dc;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>FastRide</h1>
+    <p>India's Smart Bus Booking Website</p>
+</header>
+
+<div class="container">
+
+    <!-- LOGIN SECTION -->
+    <div class="box" id="loginSection">
+        <h2>1. Login / Sign Up</h2>
+
+        <label>Username:</label>
+        <input type="text" id="username" placeholder="Enter Username">
+
+        <label>Password:</label>
+        <input type="password" id="password" placeholder="Enter Password">
+
+        <button onclick="login()">Login</button>
+
+        <h3>New User? Sign Up</h3>
+
+        <label>Email:</label>
+        <input type="email" id="signupEmail" placeholder="Enter Email">
+
+        <label>Create Password:</label>
+        <input type="password" id="signupPassword" placeholder="Create Password">
+
+        <button onclick="signup()">Sign Up</button>
+    </div>
+
+    <!-- BOOKING SECTION -->
+    <div class="box" id="bookingSection">
+        <h2>2. Book Your Bus</h2>
+
+        <label>From (Pick Up):</label>
+        <input type="text" id="from" placeholder="Enter Pick Up Location">
+
+        <label>To (Destination):</label>
+        <input type="text" id="to" placeholder="Enter Destination">
+
+        <label>Date:</label>
+        <input type="date" id="travelDate">
+
+        <button onclick="searchBus()">Search Buses</button>
+
+        <div id="busResults"></div>
+    </div>
+
+    <!-- PAYMENT SECTION -->
+    <div class="box" id="paymentSection">
+        <h2>3. Payment Section</h2>
+
+        <h3>Card Payment</h3>
+
+        <label>Card Holder Name:</label>
+        <input type="text" id="cardName">
+
+        <label>Card Number:</label>
+        <input type="text" id="cardNumber">
+
+        <label>CVV:</label>
+        <input type="password" id="cvv">
+
+        <button onclick="payNow()">Pay by Card</button>
+
+        <hr>
+
+        <h3>OR Pay via Google Pay</h3>
+
+        <p>Scan this QR Code using Google Pay:</p>
+
+        <img id="qrImage"
+            src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=FastRidePayment"
+            alt="Google Pay QR">
+
+        <br><br>
+
+        <button onclick="gpayPayment()">Paid with Google Pay</button>
+    </div>
+
+    <!-- CONFIRMATION SECTION -->
+    <div class="box" id="confirmationSection">
+        <h2>4. Booking Confirmation</h2>
+
+        <div id="ticket">
+            <h3>FastRide Ticket</h3>
+
+            <p><b>Passenger:</b> <span id="ticketUser"></span></p>
+            <p><b>From:</b> <span id="ticketFrom"></span></p>
+            <p><b>To:</b> <span id="ticketTo"></span></p>
+            <p><b>Date:</b> <span id="ticketDate"></span></p>
+            <p><b>Bus:</b> <span id="ticketBus"></span></p>
+            <p><b>Time:</b> <span id="ticketTime"></span></p>
+            <p><b>Price:</b> ₹<span id="ticketPrice"></span></p>
+        </div>
+
+        <br>
+
+        <button onclick="downloadTicket()">Download Ticket</button>
+    </div>
+
+</div>
+
+<script>
+
+ var buses = [
+    {name: "FastRide Express", time: "06:00 AM", price: 450},
+    {name: "Super Deluxe", time: "08:30 AM", price: 520},
+    {name: "Green Travels", time: "11:00 AM", price: 600},
+    {name: "Royal Bus", time: "01:30 PM", price: 700},
+    {name: "Luxury Ride", time: "04:00 PM", price: 850},
+    {name: "Night Express", time: "07:00 PM", price: 650},
+    {name: "Midnight Special", time: "10:00 PM", price: 900}
+];
+
+var selectedBus = "";
+var selectedTime = "";
+var selectedPrice = "";
+
+    function login() {
+
+        var user = document.getElementById("username").value;
+        var pass = document.getElementById("password").value;
+
+        if(user != "" && pass != "") {
+            alert("Login Successful!");
+            document.getElementById("bookingSection").style.display = "block";
+        }
+        else {
+            alert("Please enter username and password");
+        }
+    }
+
+    function signup() {
+
+        var email = document.getElementById("signupEmail").value;
+        var password = document.getElementById("signupPassword").value;
+
+        if(email != "" && password != "") {
+            alert("Sign Up Successful! Please Login.");
+        }
+        else {
+            alert("Please fill sign up details");
+        }
+    }
+
+    function searchBus() {
+
+    var from = document.getElementById("from").value;
+    var to = document.getElementById("to").value;
+    var date = document.getElementById("travelDate").value;
+
+    if(from == "" || to == "" || date == "") {
+        alert("Please fill all booking details");
+        return;
+    }
+
+    var output = "<h3>Available Buses</h3>";
+
+    for(var i = 0; i < buses.length; i++) {
+
+        output += "<div class='bus-card'>";
+        output += "<h4>" + buses[i].name + "</h4>";
+        output += "<p>Route: " + from + " to " + to + "</p>";
+        output += "<p>Time: " + buses[i].time + "</p>";
+        output += "<p><b>Price: ₹" + buses[i].price + "</b></p>";
+
+        output += "<button onclick=\"selectBus('" 
+        + buses[i].name + "','" 
+        + buses[i].time + "','" 
+        + buses[i].price + "')\">Book This Bus</button>";
+
+        output += "</div>";
+    }
+
+    document.getElementById("busResults").innerHTML = output;
+}
+
+    function selectBus(busName, busTime, busPrice) {
+
+    selectedBus = busName;
+    selectedTime = busTime;
+    selectedPrice = busPrice;
+
+    alert("Bus Selected: " + busName);
+
+    document.getElementById("paymentSection").style.display = "block";
+}
+
+    
+
+    function payNow() {
+
+        var cardName = document.getElementById("cardName").value;
+        var cardNumber = document.getElementById("cardNumber").value;
+        var cvv = document.getElementById("cvv").value;
+
+        if(cardName == "" || cardNumber == "" || cvv == "") {
+            alert("Enter card details");
+        }
+        else {
+            alert("Payment Successful!");
+            showTicket();
+        }
+    }
+
+    function gpayPayment() {
+        alert("Google Pay Payment Successful!");
+        showTicket();
+    }
+
+    function showTicket() {
+
+    document.getElementById("confirmationSection").style.display = "block";
+
+    document.getElementById("ticketUser").innerHTML =
+        document.getElementById("username").value;
+
+    document.getElementById("ticketFrom").innerHTML =
+        document.getElementById("from").value;
+
+    document.getElementById("ticketTo").innerHTML =
+        document.getElementById("to").value;
+
+    document.getElementById("ticketDate").innerHTML =
+        document.getElementById("travelDate").value;
+
+    document.getElementById("ticketBus").innerHTML =
+        selectedBus;
+
+    document.getElementById("ticketTime").innerHTML =
+        selectedTime;
+
+    document.getElementById("ticketPrice").innerHTML =
+        selectedPrice;
+}
+    function downloadTicket() {
+
+    var ticketText =
+    "FASTRIDE BUS TICKET\n\n" +
+    "Passenger: " + document.getElementById("username").value + "\n" +
+    "From: " + document.getElementById("from").value + "\n" +
+    "To: " + document.getElementById("to").value + "\n" +
+    "Date: " + document.getElementById("travelDate").value + "\n" +
+    "Bus: " + selectedBus + "\n" +
+    "Time: " + selectedTime + "\n" +
+    "Price: ₹" + selectedPrice;
+
+    var blob = new Blob([ticketText], {type: "text/plain"});
+
+    var link = document.createElement("a");
+
+    link.href = URL.createObjectURL(blob);
+
+    link.download = "FastRide_Ticket.txt";
+
+    link.click();
+
+    alert("Ticket Downloaded!");
+}
+</script>
+
+</body>
+</html>
